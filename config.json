@@ -6,7 +6,7 @@
   "duckmail_api_base": "https://api.duckmail.sbs",
   "duckmail_bearer": "",
 
-  "proxy": "",
+  "proxy": "http://127.0.0.1:7890",
 
   "output_file": "registered_accounts.txt",
   "enable_oauth": true,

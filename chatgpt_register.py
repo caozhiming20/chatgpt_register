@@ -97,9 +97,10 @@ UPLOAD_API_URL = _CONFIG["upload_api_url"]
 UPLOAD_API_TOKEN = _CONFIG["upload_api_token"]
 
 if not DUCKMAIL_BEARER:
-    print("⚠️ 警告: 未设置 DUCKMAIL_BEARER，请在 config.json 中设置或设置环境变量")
-    print("   文件: config.json -> duckmail_bearer")
-    print("   环境变量: export DUCKMAIL_BEARER='your_api_key_here'")
+    print("ℹ️  提示: 未设置 DUCKMAIL_BEARER (可选)")
+    print("   - 无 API Key: 使用公共域名 @duckmail.sbs")
+    print("   - 有 API Key: 可获取更多域名选择和私有域名")
+    print("   获取方式: https://domain.duckmail.sbs")
 
 # 全局线程锁
 _print_lock = threading.Lock()
@@ -495,9 +496,6 @@ def _create_duckmail_session():
 
 def create_temp_email():
     """创建 DuckMail 临时邮箱，返回 (email, password, mail_token)"""
-    if not DUCKMAIL_BEARER:
-        raise Exception("DUCKMAIL_BEARER 未设置，无法创建临时邮箱")
-
     # 生成随机邮箱前缀 8-13 位
     chars = string.ascii_lowercase + string.digits
     length = random.randint(8, 13)
@@ -506,7 +504,10 @@ def create_temp_email():
     password = _generate_password()
 
     api_base = DUCKMAIL_API_BASE.rstrip("/")
-    headers = {"Authorization": f"Bearer {DUCKMAIL_BEARER}"}
+    # DuckMail API 创建邮箱不需要 API Key，如果有 API Key 可以获取私有域名
+    headers = {}
+    if DUCKMAIL_BEARER:
+        headers["Authorization"] = f"Bearer {DUCKMAIL_BEARER}"
     session = _create_duckmail_session()
 
     try:
@@ -735,9 +736,6 @@ class ChatGPTRegister:
 
     def create_temp_email(self):
         """创建 DuckMail 临时邮箱，返回 (email, password, mail_token)"""
-        if not DUCKMAIL_BEARER:
-            raise Exception("DUCKMAIL_BEARER 未设置，无法创建临时邮箱")
-
         # 生成随机邮箱前缀 8-13 位
         chars = string.ascii_lowercase + string.digits
         length = random.randint(8, 13)
@@ -746,7 +744,10 @@ class ChatGPTRegister:
         password = _generate_password()
 
         api_base = DUCKMAIL_API_BASE.rstrip("/")
-        headers = {"Authorization": f"Bearer {DUCKMAIL_BEARER}"}
+        # DuckMail API 创建邮箱不需要 API Key，如果有 API Key 可以获取私有域名
+        headers = {}
+        if DUCKMAIL_BEARER:
+            headers["Authorization"] = f"Bearer {DUCKMAIL_BEARER}"
         session = self._create_duckmail_session()
 
         try:
@@ -1756,11 +1757,7 @@ def run_batch(total_accounts: int = 3, output_file="registered_accounts.txt",
               max_workers=3, proxy=None):
     """并发批量注册 - DuckMail 临时邮箱版"""
 
-    if not DUCKMAIL_BEARER:
-        print("❌ 错误: 未设置 DUCKMAIL_BEARER 环境变量")
-        print("   请设置: export DUCKMAIL_BEARER='your_api_key_here'")
-        print("   或: set DUCKMAIL_BEARER=your_api_key_here (Windows)")
-        return
+    # DUCKMAIL_BEARER 是可选的，不影响基础功能
 
     actual_workers = min(max_workers, total_accounts)
     print(f"\n{'#'*60}")
@@ -1817,14 +1814,11 @@ def main():
     print("  ChatGPT 批量自动注册工具 (DuckMail 临时邮箱版)")
     print("=" * 60)
 
-    # 检查 DuckMail 配置
+    # 检查 DuckMail 配置（API Key 是可选的）
     if not DUCKMAIL_BEARER:
-        print("\n⚠️  警告: 未设置 DUCKMAIL_BEARER")
-        print("   请编辑 config.json 设置 duckmail_bearer，或设置环境变量:")
-        print("   Windows: set DUCKMAIL_BEARER=your_api_key_here")
-        print("   Linux/Mac: export DUCKMAIL_BEARER='your_api_key_here'")
-        print("\n   按 Enter 继续尝试运行 (可能会失败)...")
-        input()
+        print("\nℹ️  提示: 未设置 DUCKMAIL_BEARER (可选)")
+        print("   将使用公共域名 @duckmail.sbs 创建临时邮箱")
+        print("   如需私有域名，请访问: https://domain.duckmail.sbs 获取 API Key")
 
     # 交互式代理配置
     proxy = DEFAULT_PROXY
